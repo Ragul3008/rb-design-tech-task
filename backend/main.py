@@ -185,7 +185,7 @@ async def get_loads(
         output.append({
             "id": load.id,
             "shipperId": load.shipper_id,
-            "shipper": {"id": load.shipper.id, "email": load.shipper.email},
+            "shipper": {"id": load.shipper.id, "email": load.shipper.email} if load.shipper else None,
             "brokerOrgId": load.broker_org_id,
             "brokerOrg": {"id": load.broker_org.id, "name": load.broker_org.name},
             "assignedCarrierOrgId": load.assigned_carrier_org_id,
@@ -299,7 +299,7 @@ async def get_load(
     return {
         "load": {
             "id": load.id,
-            "shipper": {"id": load.shipper.id, "email": load.shipper.email},
+            "shipper": {"id": load.shipper.id, "email": load.shipper.email} if load.shipper else None,
             "brokerOrg": {"id": load.broker_org.id, "name": load.broker_org.name},
             "assignedCarrierOrg": {"id": load.assigned_carrier_org.id, "name": load.assigned_carrier_org.name} if load.assigned_carrier_org else None,
             "state": load.state,
