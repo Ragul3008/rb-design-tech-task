@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LoadFlow — Freight Brokerage Operations Suite</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --background: #060913;
+      --foreground: #f8fafc;
+    }
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .glass-panel {
+      background: rgba(13, 20, 38, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(10, 15, 30, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.25);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.45);
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col antialiased">
+
+  <!-- FEEDBACK TOAST -->
+  <div id="toast" class="fixed top-4 right-4 z-50 p-4 rounded-xl border text-xs font-semibold shadow-lg hidden transition-all duration-300">
+    <span id="toast-text">Success message here</span>
+  </div>
+
+  <!-- AUTH / LOGIN PAGE CONTAINER -->
+  <div id="auth-container" class="hidden flex-1 min-h-screen flex flex-col md:flex-row relative overflow-hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-900/10 blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] rounded-full bg-emerald-900/10 blur-[120px] pointer-events-none"></div>
+
+    <!-- Hero side -->
+    <div class="hidden md:flex md:w-1/2 flex-col justify-between p-12 lg:p-20 z-10 bg-gradient-to-br from-[#0c1225] via-[#080d1a] to-[#060913] border-r border-slate-800/40">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg">
+          <span class="text-white font-bold text-xl">L</span>
+        </div>
+        <span class="font-extrabold text-2xl tracking-wide">Load<span class="text-indigo-400">Flow</span></span>
+      </div>
+      <div class="my-auto max-w-lg space-y-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 font-semibold uppercase tracking-wider">
+          Hackathon Python Edition
+        </div>
+        <h1 class="text-4xl lg:text-5xl font-extrabold leading-tight tracking-tight text-white">
+          Freight operations with <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">zero compliance drift.</span>
+        </h1>
+        <p class="text-slate-400 text-lg leading-relaxed">
+          Python FastAPI operations suite offering dynamic Role-Based Access Control, organization boundary filters, and automated compliance checking.
+        </p>
+      </div>
+      <div class="text-xs text-slate-500 font-medium">
+        Uvicorn, FastAPI & SQLite 3
+      </div>
+    </div>
+
+    <!-- Login Panel side -->
+    <div class="flex-1 flex flex-col justify-center py-12 px-6 sm:px-12 lg:px-20 z-10">
+      <div class="mx-auto w-full max-w-md">
+        <!-- Header Mobile -->
+        <div class="flex md:hidden items-center gap-3 mb-8 justify-center">
+          <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center">
+            <span class="text-white font-bold text-lg">L</span>
+          </div>
+          <span class="font-extrabold text-xl text-white">Load<span class="text-indigo-400">Flow</span></span>
+        </div>
+
+        <div class="glass-panel rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+          <h2 class="text-2xl font-bold tracking-tight text-white mb-2">Sign in to platform</h2>
+          <p class="text-slate-400 text-sm mb-6">Enter credentials or select a quick-login profile below.</p>
+
+          <form id="login-form" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
+              <input type="email" id="login-email" required class="block w-full px-3 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500" placeholder="email@example.com">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Password</label>
+              <input type="password" id="login-password" required class="block w-full px-3 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500" placeholder="••••••••">
+            </div>
+            <button type="submit" id="login-btn" class="w-full mt-2 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-sm font-semibold text-white cursor-pointer">
+              Sign In
+            </button>
+          </form>
+        </div>
+
+        <!-- Quick Logins -->
+        <div class="mt-8">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Quick Sandbox Logins</span>
+            <span class="h-px bg-slate-800 flex-1 ml-4"></span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="sandbox-logins">
+            <!-- Dynamically populated in JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD MAIN PANEL CONTAINER -->
+  <div id="dashboard-container" class="hidden flex-1 flex flex-col">
+    <!-- Top Nav -->
+    <header class="glass-panel border-b border-slate-800/40 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+      <div class="flex items-center gap-3">
+        <div class="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-indigo-600 flex items-center justify-center">
+          <span class="text-white font-bold text-base">L</span>
+        </div>
+        <span class="font-extrabold text-lg tracking-wide text-white">Load<span class="text-indigo-400">Flow</span></span>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3 py-1 px-3.5 rounded-full bg-slate-900 border border-slate-800 text-xs">
+          <i data-lucide="building" id="org-icon-broker" class="h-3.5 w-3.5 text-indigo-400 hidden"></i>
+          <i data-lucide="truck" id="org-icon-carrier" class="h-3.5 w-3.5 text-emerald-400 hidden"></i>
+          <i data-lucide="user-check" id="org-icon-shipper" class="h-3.5 w-3.5 text-amber-400 hidden"></i>
+          <div class="text-left leading-tight">
+            <div id="user-org-name" class="font-semibold text-slate-300">Apex Logistics</div>
+            <div class="text-[10px] text-slate-500">
+              <span id="user-email-text">admin@broker.com</span> • <span id="user-role-text" class="text-indigo-300 font-medium">Admin</span>
+            </div>
+          </div>
+        </div>
+        <button id="logout-btn" class="p-2 text-slate-400 hover:text-white rounded-lg bg-slate-900/60 hover:bg-slate-800 border border-slate-800 cursor-pointer">
+          <i data-lucide="log-out" class="h-4 w-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Workspace -->
+    <div class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 flex flex-col md:flex-row gap-6">
+      <!-- Sidebar Nav tabs -->
+      <aside class="w-full md:w-64 shrink-0 flex flex-col gap-2">
+        <button onclick="switchTab('loads')" id="tab-btn-loads" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold border transition-all cursor-pointer bg-indigo-500/10 border-indigo-500/30 text-indigo-300">
+          <i data-lucide="activity" class="h-4.5 w-4.5"></i>
+          <span>Load Board</span>
+        </button>
+        <button onclick="switchTab('compliance')" id="tab-btn-compliance" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold border transition-all cursor-pointer bg-slate-900/40 border-slate-800/40 text-slate-400 hover:bg-slate-900/80 hover:text-slate-200 hidden">
+          <i data-lucide="shield-check" class="h-4.5 w-4.5"></i>
+          <span>Compliance</span>
+        </button>
+        <button onclick="switchTab('roles')" id="tab-btn-roles" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold border transition-all cursor-pointer bg-slate-900/40 border-slate-800/40 text-slate-400 hover:bg-slate-900/80 hover:text-slate-200 hidden">
+          <i data-lucide="settings" class="h-4.5 w-4.5"></i>
+          <span>Role Builder</span>
+        </button>
+        <button onclick="switchTab('staff')" id="tab-btn-staff" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold border transition-all cursor-pointer bg-slate-900/40 border-slate-800/40 text-slate-400 hover:bg-slate-900/80 hover:text-slate-200 hidden">
+          <i data-lucide="users" class="h-4.5 w-4.5"></i>
+          <span>Staff Management</span>
+        </button>
+        <button onclick="switchTab('logs')" id="tab-btn-logs" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold border transition-all cursor-pointer bg-slate-900/40 border-slate-800/40 text-slate-400 hover:bg-slate-900/80 hover:text-slate-200 hidden">
+          <i data-lucide="file-text" class="h-4.5 w-4.5"></i>
+          <span>Security Logs</span>
+        </button>
+
+        <div class="mt-8 p-4 rounded-2xl bg-slate-950 border border-slate-900 text-xs text-slate-500 leading-relaxed">
+          <span class="font-semibold text-slate-400 block mb-1">Session Permissions:</span>
+          <ul id="user-perms-list" class="list-disc list-inside space-y-0.5">
+            <li>No explicit permissions</li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Main Workspace -->
+      <main class="flex-1 flex flex-col gap-6">
+
+        <!-- TAB: loads -->
+        <section id="tab-content-loads" class="space-y-6">
+          <!-- Filters & Actions -->
+          <div class="flex flex-col sm:flex-row gap-4 items-stretch justify-between">
+            <div class="flex-1 flex gap-2">
+              <input type="text" id="load-search" oninput="triggerSearch()" placeholder="Search loads by equipment, commodity, carrier..." class="w-full pl-3 pr-3 py-2 bg-slate-900/60 border border-slate-800 rounded-xl text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <select id="load-state-filter" onchange="triggerSearch()" class="pl-3 pr-6 py-2 bg-slate-900/60 border border-slate-800 rounded-xl text-sm text-slate-300 focus:outline-none cursor-pointer">
+                <option value="">All States</option>
+                <option value="POSTED">Posted</option>
+                <option value="CARRIER_ASSIGNED">Carrier Assigned</option>
+                <option value="RATE_CONFIRMED">Rate Confirmed</option>
+                <option value="DISPATCHED">Dispatched</option>
+                <option value="IN_TRANSIT">In Transit</option>
+                <option value="DELIVERED">Delivered</option>
+                <option value="POD_VERIFIED">POD Verified</option>
+                <option value="INVOICED_CLOSED">Invoiced/Closed</option>
+              </select>
+            </div>
+            <button id="btn-show-create-load" onclick="toggleCreateLoadForm()" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold text-white rounded-xl shadow-lg cursor-pointer hidden">
+              <i data-lucide="plus-circle" class="h-4 w-4"></i>
+              <span>Create Load</span>
+            </button>
+          </div>
+
+          <!-- Create Load Form Panel -->
+          <div id="create-load-panel" class="glass-panel rounded-2xl p-6 shadow-xl hidden">
+            <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+              <i data-lucide="plus-circle" class="h-4 w-4 text-indigo-400"></i>
+              <span>Post a New Load</span>
+            </h3>
+            <form id="create-load-form" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Required Equipment</label>
+                <select id="create-equip" class="w-full p-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-300 cursor-pointer">
+                  <option value="Flatbed">Flatbed</option>
+                  <option value="Dry Van">Dry Van</option>
+                  <option value="Reefer">Reefer</option>
+                  <option value="Step Deck">Step Deck</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Required Commodity</label>
+                <select id="create-commodity" class="w-full p-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-300 cursor-pointer">
+                  <option value="Produce">Produce</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="General Freight">General Freight</option>
+                  <option value="Chemicals">Chemicals</option>
+                </select>
+              </div>
+              <div id="shipper-select-group" class="hidden">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Shipper ID (Email/UUID)</label>
+                <input type="text" id="create-shipper" value="shipper@shipper.com" class="w-full p-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-300 focus:outline-none">
+              </div>
+              <div>
+                <button type="submit" class="w-full py-2 bg-indigo-500 hover:bg-indigo-600 font-semibold text-xs text-white rounded-lg cursor-pointer">
+                  Submit Posting
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Loads list -->
+          <div id="loads-list" class="space-y-4">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+
+        <!-- TAB: compliance -->
+        <section id="tab-content-compliance" class="space-y-6 hidden">
+          <!-- Compliance edit declaration -->
+          <div id="compliance-edit-panel" class="glass-panel p-6 rounded-2xl shadow-xl hidden">
+            <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+              <i data-lucide="shield-check" class="h-5 w-5 text-indigo-400"></i>
+              <span>Manage Carrier Compliance Declaration</span>
+            </h3>
+            <form id="compliance-form" class="space-y-6">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Insurance Expiry Date</label>
+                  <input type="date" id="comp-date" required class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-300">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">MC/DOT Authority Status</label>
+                  <select id="comp-status" class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-300 cursor-pointer">
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="INACTIVE">INACTIVE</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Approved Equipment Types</span>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="comp-equip-checkboxes">
+                  <!-- JS checklist -->
+                </div>
+              </div>
+
+              <div>
+                <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Approved Cargo Commodities</span>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="comp-comm-checkboxes">
+                  <!-- JS checklist -->
+                </div>
+              </div>
+
+              <div class="flex justify-end">
+                <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-xs font-bold text-white rounded-xl shadow-md cursor-pointer">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Compliance Records Table -->
+          <div class="glass-panel p-6 rounded-2xl shadow-xl overflow-hidden">
+            <h3 class="text-base font-bold text-white mb-4">Carrier Compliance Directory</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-800 text-slate-500 uppercase tracking-wider">
+                    <th class="pb-3 pr-4">Carrier Organization</th>
+                    <th class="pb-3 pr-4">Authority Status</th>
+                    <th class="pb-3 pr-4">Insurance Expiry</th>
+                    <th class="pb-3 pr-4">Approved Equipment</th>
+                    <th class="pb-3 pr-4">Approved Commodities</th>
+                  </tr>
+                </thead>
+                <tbody id="compliance-table-body" class="divide-y divide-slate-850 text-slate-300">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: roles -->
+        <section id="tab-content-roles" class="space-y-6 hidden">
+          <!-- Build custom roles -->
+          <div class="glass-panel p-6 rounded-2xl shadow-xl">
+            <h3 class="text-sm font-bold text-white mb-4">Create New Custom Role</h3>
+            <form id="create-role-form" class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Role Name</label>
+                <input type="text" id="role-name" required placeholder="e.g. Regional Coordinator" class="w-full max-w-md p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-300 focus:outline-none">
+              </div>
+
+              <div>
+                <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Select Bundled Permissions</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="perms-builder-group">
+                  <!-- JS checklists -->
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-3">
+                <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-xs font-bold text-white rounded-xl cursor-pointer">
+                  Save New Role
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Existing roles -->
+          <div class="glass-panel p-6 rounded-2xl shadow-xl">
+            <h3 class="text-sm font-bold text-white mb-4">Existing Organization Roles</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="roles-cards-container">
+              <!-- JS cards -->
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: staff -->
+        <section id="tab-content-staff" class="space-y-6 hidden">
+          <!-- Create staff -->
+          <div class="glass-panel p-6 rounded-2xl shadow-xl">
+            <h3 class="text-sm font-bold text-white mb-4">Add Staff Member</h3>
+            <form id="create-staff-form" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+              <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
+                <input type="email" id="staff-email" required placeholder="user@org.com" class="w-full p-2 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none text-slate-300">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Password</label>
+                <input type="password" id="staff-password" required placeholder="Password" class="w-full p-2 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none text-slate-300">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Assign Role</label>
+                <select id="staff-role" required class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-300 cursor-pointer">
+                  <!-- Roles list options -->
+                </select>
+              </div>
+              <div>
+                <button type="submit" class="w-full py-2 bg-indigo-500 hover:bg-indigo-600 font-bold text-xs text-white rounded-xl shadow-lg cursor-pointer">
+                  Create User Account
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Staff listing table -->
+          <div class="glass-panel p-6 rounded-2xl shadow-xl overflow-hidden">
+            <h3 class="text-sm font-bold text-white mb-4">Current Staff List</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-800 text-slate-500 uppercase tracking-wider">
+                    <th class="pb-3 pr-4">Email Address</th>
+                    <th class="pb-3 pr-4">Account Role</th>
+                    <th class="pb-3 pr-4">Permissions</th>
+                  </tr>
+                </thead>
+                <tbody id="staff-table-body" class="divide-y divide-slate-850 text-slate-300">
+                  <!-- Dynamic staff list -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: logs -->
+        <section id="tab-content-logs" class="space-y-6 hidden">
+          <!-- Access Violation Logs -->
+          <div class="glass-panel p-6 rounded-2xl shadow-xl">
+            <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+              <i data-lucide="shield-alert" class="h-4.5 w-4.5 text-rose-500"></i>
+              <span>Security Access Violation Log (Blocked Requests)</span>
+            </h3>
+            <div class="overflow-x-auto max-h-[300px]">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-800 text-slate-500 font-semibold">
+                    <th class="pb-2 pr-4">Timestamp</th>
+                    <th class="pb-2 pr-4">User Email</th>
+                    <th class="pb-2 pr-4">Attempted Action</th>
+                    <th class="pb-2 pr-4">Endpoint</th>
+                    <th class="pb-2 pr-4">Reason</th>
+                  </tr>
+                </thead>
+                <tbody id="access-logs-body" class="divide-y divide-slate-850 font-mono text-slate-400">
+                  <!-- Access logs -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Audit logs -->
+          <div class="glass-panel p-6 rounded-2xl shadow-xl">
+            <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+              <i data-lucide="activity" class="h-4.5 w-4.5 text-indigo-400"></i>
+              <span>Global Shipment Lifecycle Audit Logs</span>
+            </h3>
+            <div class="overflow-x-auto max-h-[400px]">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-800 text-slate-500 font-semibold">
+                    <th class="pb-2 pr-4">Timestamp</th>
+                    <th class="pb-2 pr-4">Load Details</th>
+                    <th class="pb-2 pr-4">Transition</th>
+                    <th class="pb-2 pr-4">Operator</th>
+                    <th class="pb-2 pr-4">Audited Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-logs-body" class="divide-y divide-slate-850 text-slate-400 font-mono">
+                  <!-- Audit logs -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ACTION MODALS PANEL -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 shadow-2xl relative">
+      <h3 class="text-base font-bold text-white mb-4" id="modal-title">Action Modal</h3>
+      
+      <!-- Content placeholders populated dynamically -->
+      <div id="modal-form-content"></div>
+    </div>
+  </div>
+
+  <!-- Unified JS Controller -->
+  <script>
+    let currentUser = null;
+    let selectedLoad = null;
+
+    const equipmentOptions = ["Flatbed", "Dry Van", "Reefer", "Step Deck", "Hot Shot"];
+    const commodityOptions = ["Produce", "Electronics", "General Freight", "Chemicals", "Building Materials"];
+    const permissionDetails = [
+      { key: "load.create", desc: "Post new loads to the system" },
+      { key: "load.assign_carrier", desc: "Assign carrier to posted loads" },
+      { key: "load.override_compliance_flag", desc: "Bypass/override compliance auto-flags" },
+      { key: "rate.confirm", desc: "Negotiate and sign rate confirmations" },
+      { key: "load.update_status", desc: "Advance shipment lifecycle status" },
+      { key: "staff.manage", desc: "Manage organization staff and define roles" },
+      { key: "pod.upload", desc: "Upload proof of delivery files" },
+    ];
+
+    const quickLogins = [
+      { label: "Broker Admin", email: "admin@broker.com", password: "Password123" },
+      { label: "Broker Dispatcher", email: "dispatcher@broker.com", password: "Password123" },
+      { label: "Broker Ops Lead", email: "opslead@broker.com", password: "Password123" },
+      { label: "Carrier Admin", email: "admin@carrier.com", password: "Password123" },
+      { label: "Carrier Driver", email: "driver@carrier.com", password: "Password123" },
+      { label: "Shipper Account", email: "shipper@shipper.com", password: "Password123" },
+      { label: "Non-Compliant Admin", email: "redadmin@carrier.com", password: "Password123" },
+    ];
+
+    window.addEventListener("DOMContentLoaded", () => {
+      renderQuickLoginProfiles();
+      checkAuthSession();
+    });
+
+    function showToast(text, type = "success") {
+      const toast = document.getElementById("toast");
+      const toastText = document.getElementById("toast-text");
+      toastText.innerText = text;
+
+      toast.className = `fixed top-4 right-4 z-50 p-4 rounded-xl border text-xs font-semibold shadow-lg transition-all duration-300`;
+      if (type === "success") {
+        toast.classList.add("bg-emerald-500/10", "border-emerald-500/30", "text-emerald-400");
+      } else {
+        toast.classList.add("bg-rose-500/10", "border-rose-500/30", "text-rose-400");
+      }
+
+      toast.classList.remove("hidden");
+      setTimeout(() => toast.classList.add("hidden"), 5000);
+    }
+
+    function renderQuickLoginProfiles() {
+      const container = document.getElementById("sandbox-logins");
+      container.innerHTML = "";
+      quickLogins.forEach(profile => {
+        const btn = document.createElement("button");
+        btn.className = "flex items-center gap-3 p-3 text-left rounded-xl bg-slate-900/40 border border-slate-800/60 hover:bg-slate-900/80 hover:border-slate-700/60 transition-all cursor-pointer";
+        btn.onclick = () => quickLogin(profile.email, profile.password);
+        btn.innerHTML = `
+          <div class="p-2 rounded-lg bg-slate-950/80 text-indigo-400">
+            <i data-lucide="shield-check" class="h-4 w-4"></i>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-300">${profile.label}</div>
+            <div class="text-[10px] text-slate-500">${profile.email}</div>
+          </div>
+        `;
+        container.appendChild(btn);
+      });
+      lucide.createIcons();
+    }
+
+    // Authenticate
+    async function checkAuthSession() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          currentUser = data.user;
+          renderDashboardState();
+        } else {
+          showLoginPanel();
+        }
+      } catch {
+        showLoginPanel();
+      }
+    }
+
+    function showLoginPanel() {
+      document.getElementById("auth-container").classList.remove("hidden");
+      document.getElementById("dashboard-container").classList.add("hidden");
+    }
+
+    async function quickLogin(email, password) {
+      document.getElementById("login-email").value = email;
+      document.getElementById("login-password").value = password;
+      await executeLogin(email, password);
+    }
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      await executeLogin(email, password);
+    });
+
+    async function executeLogin(email, password) {
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || data.error || "Login failed");
+
+        currentUser = data.user;
+        showToast("Logged in successfully.");
+        renderDashboardState();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      await fetch("/api/auth/logout", { method: "POST" });
+      currentUser = null;
+      showLoginPanel();
+      showToast("Logged out successfully.");
+    });
+
+    // Configure layout based on user types & active roles
+    function renderDashboardState() {
+      document.getElementById("auth-container").classList.add("hidden");
+      document.getElementById("dashboard-container").classList.remove("hidden");
+
+      // Set user header details
+      document.getElementById("user-email-text").innerText = currentUser.email;
+      document.getElementById("user-role-text").innerText = currentUser.role ? currentUser.role.name : "Shipper Account";
+      document.getElementById("user-org-name").innerText = currentUser.org ? currentUser.org.name : "Shipper Accounts";
+
+      // Hide all header icons, show correct one
+      document.getElementById("org-icon-broker").classList.add("hidden");
+      document.getElementById("org-icon-carrier").classList.add("hidden");
+      document.getElementById("org-icon-shipper").classList.add("hidden");
+
+      if (currentUser.accountType === "BROKER_STAFF") {
+        document.getElementById("org-icon-broker").classList.remove("hidden");
+      } else if (currentUser.accountType === "CARRIER_STAFF") {
+        document.getElementById("org-icon-carrier").classList.remove("hidden");
+      } else {
+        document.getElementById("org-icon-shipper").classList.remove("hidden");
+      }
+
+      // Populate sidebar perms list
+      const permsList = document.getElementById("user-perms-list");
+      permsList.innerHTML = "";
+      if (currentUser.role && currentUser.role.permissions.length > 0) {
+        currentUser.role.permissions.forEach(p => {
+          const li = document.createElement("li");
+          li.innerText = p;
+          permsList.appendChild(li);
+        });
+      } else {
+        const li = document.createElement("li");
+        li.innerText = "Shipper Scoping Only";
+        permsList.appendChild(li);
+      }
+
+      // Dynamic Tab visibility
+      const isBroker = currentUser.accountType === "BROKER_STAFF";
+      const isCarrier = currentUser.accountType === "CARRIER_STAFF";
+      const hasStaff = currentUser.role && currentUser.role.permissions.includes("staff.manage");
+      const canLogs = isBroker && (hasStaff || currentUser.role.permissions.includes("load.override_compliance_flag"));
+
+      document.getElementById("tab-btn-compliance").classList.add("hidden");
+      document.getElementById("tab-btn-roles").classList.add("hidden");
+      document.getElementById("tab-btn-staff").classList.add("hidden");
+      document.getElementById("tab-btn-logs").classList.add("hidden");
+
+      if (isBroker || isCarrier) {
+        document.getElementById("tab-btn-compliance").classList.remove("hidden");
+      }
+      if (hasStaff) {
+        document.getElementById("tab-btn-roles").classList.remove("hidden");
+        document.getElementById("tab-btn-staff").classList.remove("hidden");
+      }
+      if (canLogs) {
+        document.getElementById("tab-btn-logs").classList.remove("hidden");
+      }
+
+      // Populate Load form visibilities
+      const createLoadBtn = document.getElementById("btn-show-create-load");
+      if (currentUser.accountType === "SHIPPER" || (isBroker && currentUser.role.permissions.includes("load.create"))) {
+        createLoadBtn.classList.remove("hidden");
+      } else {
+        createLoadBtn.classList.add("hidden");
+      }
+
+      // Load correct lists
+      switchTab("loads");
+      lucide.createIcons();
+    }
+
+    function switchTab(tab) {
+      const tabs = ["loads", "compliance", "roles", "staff", "logs"];
+      tabs.forEach(t => {
+        const content = document.getElementById(`tab-content-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (content) {
+          if (t === tab) {
+            content.classList.remove("hidden");
+            btn.className = "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold border transition-all cursor-pointer bg-indigo-500/10 border-indigo-500/30 text-indigo-300";
+          } else {
+            content.classList.add("hidden");
+            btn.className = "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold border transition-all cursor-pointer bg-slate-900/40 border-slate-800/40 text-slate-400 hover:bg-slate-900/80 hover:text-slate-200";
+          }
+        }
+      });
+
+      // Reload matching data
+      fetchTabData(tab);
+    }
+
+    async function fetchTabData(tab) {
+      if (tab === "loads") {
+        await loadLoads();
+      } else if (tab === "compliance") {
+        await loadComplianceDirectory();
+      } else if (tab === "roles") {
+        await loadRoles();
+      } else if (tab === "staff") {
+        await loadStaff();
+      } else if (tab === "logs") {
+        await loadLogs();
+      }
+    }
+
+    // Toggle Create load form
+    function toggleCreateLoadForm() {
+      const panel = document.getElementById("create-load-panel");
+      const shipperGroup = document.getElementById("shipper-select-group");
+
+      panel.classList.toggle("hidden");
+      if (currentUser.accountType === "BROKER_STAFF") {
+        shipperGroup.classList.remove("hidden");
+      } else {
+        shipperGroup.classList.add("hidden");
+      }
+    }
+
+    // CREATE LOAD
+    document.getElementById("create-load-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const requiredEquipmentType = document.getElementById("create-equip").value;
+      const requiredCommodityType = document.getElementById("create-commodity").value;
+      const shipperId = document.getElementById("create-shipper").value;
+
+      try {
+        const res = await fetch("/api/loads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            requiredEquipmentType,
+            requiredCommodityType,
+            shipperId: currentUser.accountType === "BROKER_STAFF" ? shipperId : undefined,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Failed to post load");
+
+        showToast("Load created successfully.");
+        document.getElementById("create-load-panel").classList.add("hidden");
+        loadLoads();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    });
+
+    // SEARCH & STATE FILTERS
+    function triggerSearch() {
+      loadLoads();
+    }
+
+    async function loadLoads() {
+      const search = document.getElementById("load-search").value;
+      const state = document.getElementById("load-state-filter").value;
+
+      try {
+        const res = await fetch(`/api/loads?search=${search}&state=${state}`);
+        const data = await res.json();
+        const container = document.getElementById("loads-list");
+        container.innerHTML = "";
+
+        if (!data.loads || data.loads.length === 0) {
+          container.innerHTML = `
+            <div class="glass-panel p-8 text-center rounded-2xl border border-dashed border-slate-800">
+              <i data-lucide="truck" class="h-8 w-8 text-slate-600 mx-auto mb-2"></i>
+              <p class="text-slate-400 text-sm font-medium">No loads matching filters were found.</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        data.loads.forEach(load => {
+          const card = document.createElement("div");
+          const hasOverride = currentUser.role && currentUser.role.permissions.includes("load.override_compliance_flag");
+          const isBroker = currentUser.accountType === "BROKER_STAFF";
+          
+          let complianceAlert = "";
+          if (load.complianceFlag) {
+            complianceAlert = `
+              <div class="p-3 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-400 flex items-start gap-3">
+                <i data-lucide="shield-alert" class="h-4.5 w-4.5 shrink-0 mt-0.5"></i>
+                <div>
+                  <span class="font-bold">COMPLIANCE CRITICAL FLAG: </span>
+                  ${load.complianceReason}
+                </div>
+              </div>
+            `;
+          }
+
+          let actionButtons = "";
+          // Assign Carrier
+          if (isBroker && currentUser.role.permissions.includes("load.assign_carrier") && (load.state === "POSTED" || load.state === "CARRIER_ASSIGNED")) {
+            actionButtons += `<button onclick="openAssignModal('${load.id}')" class="px-3.5 py-1.5 bg-slate-850 hover:bg-slate-750 text-[11px] font-bold text-white rounded-lg cursor-pointer">Assign Carrier</button>`;
+          }
+          // Confirm rate
+          if (isBroker && currentUser.role.permissions.includes("rate.confirm") && (load.state === "CARRIER_ASSIGNED" || load.state === "RATE_CONFIRMED")) {
+            actionButtons += `<button onclick="openRateModal('${load.id}', '${load.currentRateConfirmation ? load.currentRateConfirmation.baseRate : ''}')" class="px-3.5 py-1.5 bg-purple-650 hover:bg-purple-750 text-[11px] font-bold text-white rounded-lg cursor-pointer">Confirm Rate</button>`;
+          }
+          // Override Compliance
+          if (isBroker && hasOverride && load.complianceFlag) {
+            actionButtons += `<button onclick="openOverrideModal('${load.id}')" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-750 text-[11px] font-bold text-white rounded-lg cursor-pointer">Override Compliance</button>`;
+          }
+          // Update Status
+          if (currentUser.role && currentUser.role.permissions.includes("load.update_status") && load.state !== "POSTED" && load.state !== "INVOICED_CLOSED") {
+            actionButtons += `<button onclick="openStatusModal('${load.id}', '${load.state}')" class="px-3.5 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-[11px] font-bold text-white rounded-lg cursor-pointer">Update Status</button>`;
+          }
+          // Upload POD
+          if (currentUser.role && currentUser.role.permissions.includes("pod.upload") && load.state === "DELIVERED") {
+            actionButtons += `<button onclick="openPodModal('${load.id}')" class="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-[11px] font-bold text-white rounded-lg cursor-pointer">Upload POD</button>`;
+          }
+
+          let rateText = "N/A";
+          if (load.currentRateConfirmation) {
+            rateText = `$${load.currentRateConfirmation.baseRate.toFixed(2)} (v${load.currentRateConfirmation.version})`;
+          }
+
+          let podInfo = "";
+          if (load.podUrl) {
+            podInfo = `
+              <div class="mt-3 p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs flex items-center justify-between">
+                <span class="text-slate-400 font-medium">POD Verification Document:</span>
+                <a href="${load.podUrl}" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-bold underline">View Uploaded File</a>
+              </div>
+            `;
+          }
+
+          // Build audit history list
+          let auditHistoryList = "";
+          load.statusEvents.forEach(evt => {
+            auditHistoryList += `
+              <div class="relative pl-4 border-l border-slate-800">
+                <div class="absolute -left-[4.5px] top-1.5 h-2 w-2 rounded-full bg-slate-700"></div>
+                <div class="text-[10px] text-slate-500">${new Date(evt.timestamp).toLocaleString()} • ${evt.changedByUser.email}</div>
+                <p class="text-slate-300 mt-0.5 font-medium">${evt.note}</p>
+              </div>
+            `;
+          });
+
+          card.className = `glass-panel rounded-2xl p-6 shadow-lg border relative transition-all ${
+            load.complianceFlag ? "border-rose-500/40 hover:border-rose-500/60" : "border-slate-850 hover:border-slate-700/60"
+          }`;
+
+          card.innerHTML = `
+            ${complianceAlert}
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+              <div class="space-y-1">
+                <span class="text-[10px] text-slate-500 font-mono tracking-wider block uppercase">Load ID: ${load.id.slice(0, 8)}...</span>
+                <h4 class="text-sm font-extrabold text-white">${load.requiredEquipmentType} • ${load.requiredCommodityType}</h4>
+              </div>
+              <span class="px-2.5 py-1 text-[10px] font-bold rounded-full border uppercase tracking-wider bg-slate-500/10 border-slate-500/30 text-slate-400">${load.state.replace("_", " ")}</span>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 py-3 border-t border-b border-slate-800/40 text-xs">
+              <div>
+                <span class="text-slate-500 font-medium block">Shipper:</span>
+                <span class="text-slate-300 font-semibold">${load.shipper.email}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 font-medium block">Broker Org:</span>
+                <span class="text-slate-300 font-semibold">${load.brokerOrg.name}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 font-medium block">Carrier:</span>
+                <span class="text-slate-300 font-semibold">${load.assignedCarrierOrg ? load.assignedCarrierOrg.name : 'Not Assigned'}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 font-medium block">Base Rate:</span>
+                <span class="text-slate-300 font-bold text-indigo-400">${rateText}</span>
+              </div>
+            </div>
+
+            ${podInfo}
+
+            <details class="mt-3 text-xs">
+              <summary class="text-slate-500 hover:text-slate-300 cursor-pointer py-1 font-semibold outline-none select-none">
+                View Audit Trail History (${load.statusEvents.length} events)
+              </summary>
+              <div class="mt-2 space-y-2.5">
+                ${auditHistoryList}
+              </div>
+            </details>
+
+            <div class="mt-4 flex flex-wrap gap-2 justify-end">
+              ${actionButtons}
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+        lucide.createIcons();
+      } catch (e) {
+        showToast("Error loading loads checklist", "error");
+      }
+    }
+
+    // MODAL TRIGGERS
+    function showModal(title, formHtml) {
+      document.getElementById("modal-title").innerText = title;
+      document.getElementById("modal-form-content").innerHTML = formHtml;
+      document.getElementById("modal-backdrop").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("modal-backdrop").classList.add("hidden");
+    }
+
+    function openAssignModal(loadId) {
+      const html = `
+        <form onsubmit="submitAssign(event, '${loadId}')" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Available Carrier Organizations</label>
+            <select id="assign-carrier-select" required class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-300 cursor-pointer">
+              <option value="">Select a Carrier...</option>
+              <option value="FALCON_EXPRESS">Falcon Express (Compliant)</option>
+              <option value="RED_FLAG">Red Flag Trucking (NON-Compliant)</option>
+            </select>
+          </div>
+          <div class="flex justify-end gap-2 pt-3">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-bold text-slate-400 rounded-xl cursor-pointer">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-xs font-bold text-white rounded-xl cursor-pointer">Assign & Check</button>
+          </div>
+        </form>
+      `;
+      showModal("Assign Carrier to Load", html);
+    }
+
+    async function submitAssign(e, loadId) {
+      e.preventDefault();
+      const carrierOrgId = document.getElementById("assign-carrier-select").value;
+      try {
+        const res = await fetch(`/api/loads/${loadId}/assign`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ carrierOrgId }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Assignment failed");
+
+        showToast("Carrier assigned and compliance flag computed.");
+        closeModal();
+        loadLoads();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    function openRateModal(loadId, currentRate) {
+      const html = `
+        <form onsubmit="submitRate(event, '${loadId}')" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Base Rate ($)</label>
+            <input type="number" id="rate-base" required value="${currentRate}" placeholder="e.g. 1500" class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none text-slate-300">
+          </div>
+          <div class="flex justify-end gap-2 pt-3">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-bold text-slate-400 rounded-xl cursor-pointer">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-xs font-bold text-white rounded-xl cursor-pointer">Confirm Rate</button>
+          </div>
+        </form>
+      `;
+      showModal("Confirm Rate Negotiation", html);
+    }
+
+    async function submitRate(e, loadId) {
+      e.preventDefault();
+      const baseRate = parseFloat(document.getElementById("rate-base").value);
+      try {
+        const res = await fetch(`/api/loads/${loadId}/rate-confirm`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ baseRate, accessorials: [] }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Rate confirmation failed");
+
+        showToast("Rate confirmation sheet issued.");
+        closeModal();
+        loadLoads();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    function openOverrideModal(loadId) {
+      const html = `
+        <form onsubmit="submitOverride(event, '${loadId}')" class="space-y-4">
+          <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 leading-relaxed mb-2">
+            <strong>Security Override:</strong> Clearing compliance flags requires typing a valid business reason. Action logged to audit trail.
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Override Reason</label>
+            <textarea id="override-reason" required rows="3" placeholder="Provide override authorization notes..." class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none text-slate-300"></textarea>
+          </div>
+          <div class="flex justify-end gap-2 pt-3">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-bold text-slate-400 rounded-xl cursor-pointer">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-rose-600 text-xs font-bold text-white rounded-xl cursor-pointer">Perform Bypass</button>
+          </div>
+        </form>
+      `;
+      showModal("Compliance Bypass Justification", html);
+    }
+
+    async function submitOverride(e, loadId) {
+      e.preventDefault();
+      const reason = document.getElementById("override-reason").value;
+      try {
+        const res = await fetch(`/api/loads/${loadId}/override`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Override failed");
+
+        showToast("Compliance block manually cleared.");
+        closeModal();
+        loadLoads();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    function openStatusModal(loadId, currentState) {
+      const stateOrder = [
+        "POSTED", "CARRIER_ASSIGNED", "RATE_CONFIRMED", "DISPATCHED",
+        "IN_TRANSIT", "DELIVERED", "POD_VERIFIED", "INVOICED_CLOSED"
+      ];
+      const currentIdx = stateOrder.indexOf(currentState);
+      const nextState = stateOrder[currentIdx + 1] || "";
+
+      let options = "";
+      stateOrder.forEach(state => {
+        options += `<option value="${state}" ${state === nextState ? 'selected' : ''}>${state.replace("_", " ")}</option>`;
+      });
+
+      const html = `
+        <form onsubmit="submitStatus(event, '${loadId}')" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Target Status</label>
+            <select id="status-target-select" required class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-300 cursor-pointer">
+              ${options}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Audit Event Notes</label>
+            <input type="text" id="status-notes" placeholder="Reason/notes for transition..." class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none text-slate-300">
+          </div>
+          <div class="flex justify-end gap-2 pt-3">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-bold text-slate-400 rounded-xl cursor-pointer">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-xs font-bold text-white rounded-xl cursor-pointer">Transition State</button>
+          </div>
+        </form>
+      `;
+      showModal("Advance Lifecycle Status", html);
+    }
+
+    async function submitStatus(e, loadId) {
+      e.preventDefault();
+      const toState = document.getElementById("status-target-select").value;
+      const note = document.getElementById("status-notes").value;
+      try {
+        const res = await fetch(`/api/loads/${loadId}/status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ toState, note }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "State transition failed");
+
+        showToast("Load status updated.");
+        closeModal();
+        loadLoads();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    function openPodModal(loadId) {
+      const html = `
+        <form onsubmit="submitPod(event, '${loadId}')" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Proof of Delivery URL</label>
+            <input type="url" id="pod-url-input" required placeholder="https://example.com/scans/load-pod.pdf" class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none text-slate-300">
+          </div>
+          <div class="flex justify-end gap-2 pt-3">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-bold text-slate-400 rounded-xl cursor-pointer">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-xs font-bold text-white rounded-xl cursor-pointer">Upload Document</button>
+          </div>
+        </form>
+      `;
+      showModal("Upload Proof of Delivery", html);
+    }
+
+    async function submitPod(e, loadId) {
+      e.preventDefault();
+      const podUrl = document.getElementById("pod-url-input").value;
+      try {
+        const res = await fetch(`/api/loads/${loadId}/pod`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ podUrl }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "POD upload failed");
+
+        showToast("Proof of Delivery verified.");
+        closeModal();
+        loadLoads();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    // COMPLIANCE DIRECTORY VIEW
+    async function loadComplianceDirectory() {
+      try {
+        const isCarrier = currentUser.accountType === "CARRIER_STAFF";
+        const hasStaff = currentUser.role && currentUser.role.permissions.includes("staff.manage");
+        
+        // Show edit panel only for Carrier Admins
+        const editPanel = document.getElementById("compliance-edit-panel");
+        if (isCarrier && hasStaff) {
+          editPanel.classList.remove("hidden");
+          renderComplianceCheckboxes();
+        } else {
+          editPanel.classList.add("hidden");
+        }
+
+        const res = await fetch("/api/compliance");
+        const data = await res.json();
+        const tbody = document.getElementById("compliance-table-body");
+        tbody.innerHTML = "";
+
+        data.records.forEach(r => {
+          const isExpired = new Date(r.insuranceExpiryDate) < new Date();
+          const isInactive = r.mcDotAuthorityStatus !== "ACTIVE";
+          
+          let equipments = [];
+          try { equipments = JSON.parse(r.approvedEquipmentTypes); } catch { equipments = []; }
+          let commodities = [];
+          try { commodities = JSON.parse(r.approvedCommodityTypes); } catch { commodities = []; }
+
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-900/20";
+          tr.innerHTML = `
+            <td class="py-4 pr-4 font-bold text-white">${r.carrierOrg.name}</td>
+            <td class="py-4 pr-4">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isInactive ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}">${r.mcDotAuthorityStatus}</span>
+            </td>
+            <td class="py-4 pr-4">
+              <span class="${isExpired ? 'text-rose-400 font-semibold' : 'text-slate-300'}">${new Date(r.insuranceExpiryDate).toLocaleDateString()} ${isExpired ? '(EXPIRED)' : ''}</span>
+            </td>
+            <td class="py-4 pr-4 max-w-[200px] truncate" title="${equipments.join(', ')}">${equipments.join(", ")}</td>
+            <td class="py-4 pr-4 max-w-[200px] truncate" title="${commodities.join(', ')}">${commodities.join(", ")}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        showToast("Failed to fetch compliance directory", "error");
+      }
+    }
+
+    function renderComplianceCheckboxes() {
+      // Equipment Checkbox List
+      const equipGroup = document.getElementById("comp-equip-checkboxes");
+      equipGroup.innerHTML = "";
+      equipmentOptions.forEach(e => {
+        const div = document.createElement("div");
+        div.className = "flex items-center gap-2";
+        div.innerHTML = `
+          <input type="checkbox" id="comp-eq-${e}" value="${e}" class="accent-indigo-500">
+          <label for="comp-eq-${e}" class="text-xs text-slate-300 select-none">${e}</label>
+        `;
+        equipGroup.appendChild(div);
+      });
+
+      // Commodity Checkbox List
+      const commGroup = document.getElementById("comp-comm-checkboxes");
+      commGroup.innerHTML = "";
+      commodityOptions.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "flex items-center gap-2";
+        div.innerHTML = `
+          <input type="checkbox" id="comp-co-${c}" value="${c}" class="accent-indigo-500">
+          <label for="comp-co-${c}" class="text-xs text-slate-300 select-none">${c}</label>
+        `;
+        commGroup.appendChild(div);
+      });
+    }
+
+    document.getElementById("compliance-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const insuranceExpiryDate = document.getElementById("comp-date").value;
+      const mcDotAuthorityStatus = document.getElementById("comp-status").value;
+
+      const approvedEquipmentTypes = [];
+      equipmentOptions.forEach(eq => {
+        if (document.getElementById(`comp-eq-${eq}`).checked) {
+          approvedEquipmentTypes.push(eq);
+        }
+      });
+
+      const approvedCommodityTypes = [];
+      commodityOptions.forEach(co => {
+        if (document.getElementById(`comp-co-${co}`).checked) {
+          approvedCommodityTypes.push(co);
+        }
+      });
+
+      try {
+        const res = await fetch("/api/compliance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            insuranceExpiryDate,
+            mcDotAuthorityStatus,
+            approvedEquipmentTypes,
+            approvedCommodityTypes,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Update failed");
+
+        showToast("Compliance declaration updated.");
+        loadComplianceDirectory();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    });
+
+    // ROLE BUILDER VIEW
+    async function loadRoles() {
+      // Populate perms checklist for Builder form
+      const permsBuilder = document.getElementById("perms-builder-group");
+      permsBuilder.innerHTML = "";
+      permissionDetails.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "flex items-start gap-2 p-2 rounded-lg bg-slate-900 border border-slate-850";
+        div.innerHTML = `
+          <input type="checkbox" id="role-perm-${p.key}" value="${p.key}" class="mt-0.5 accent-indigo-500">
+          <div>
+            <label for="role-perm-${p.key}" class="text-xs font-bold text-white select-none block">${p.key}</label>
+            <span class="text-[10px] text-slate-500">${p.desc}</span>
+          </div>
+        `;
+        permsBuilder.appendChild(div);
+      });
+
+      try {
+        const res = await fetch("/api/roles");
+        const data = await res.json();
+
+        // Cards list
+        const container = document.getElementById("roles-cards-container");
+        container.innerHTML = "";
+
+        data.roles.forEach(role => {
+          const keys = role.permissions.map(p => p.key).join(", ") || "None";
+          const card = document.createElement("div");
+          card.className = "p-4 rounded-xl bg-slate-900 border border-slate-850 space-y-3";
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-bold text-white">${role.name}</span>
+              <span class="text-[10px] bg-slate-850 text-slate-400 px-2 py-0.5 rounded-full">${role._count.users} Users</span>
+            </div>
+            <div class="text-[10px] text-slate-500 leading-relaxed font-mono">
+              <span class="font-semibold text-slate-400 block mb-1">Permissions:</span>
+              ${keys}
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        showToast("Error loading roles", "error");
+      }
+    }
+
+    document.getElementById("create-role-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("role-name").value;
+      const permissionKeys = [];
+      permissionDetails.forEach(p => {
+        if (document.getElementById(`role-perm-${p.key}`).checked) {
+          permissionKeys.push(p.key);
+        }
+      });
+
+      try {
+        const res = await fetch("/api/roles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, permissionKeys }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Failed to create role");
+
+        showToast(`Role '${name}' created successfully.`);
+        document.getElementById("role-name").value = "";
+        loadRoles();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    });
+
+    // STAFF MANAGEMENT VIEW
+    async function loadStaff() {
+      try {
+        const rolesRes = await fetch("/api/roles");
+        const rolesData = await rolesRes.json();
+        const roleSelect = document.getElementById("staff-role");
+        roleSelect.innerHTML = `<option value="">Choose Role...</option>`;
+        rolesData.roles.forEach(r => {
+          roleSelect.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+        });
+
+        const staffRes = await fetch("/api/staff");
+        const staffData = await staffRes.json();
+        const tbody = document.getElementById("staff-table-body");
+        tbody.innerHTML = "";
+
+        staffData.staff.forEach(s => {
+          const keys = s.role ? s.role.permissions.map(p => p.key).join(", ") : "None";
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-900/10";
+          tr.innerHTML = `
+            <td class="py-4 pr-4 font-bold text-white">${s.email}</td>
+            <td class="py-4 pr-4 text-indigo-400 font-semibold">${s.role ? s.role.name : 'None'}</td>
+            <td class="py-4 pr-4 max-w-sm truncate text-slate-500 font-mono" title="${keys}">${keys}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        showToast("Error loading staff catalog", "error");
+      }
+    }
+
+    document.getElementById("create-staff-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("staff-email").value;
+      const password = document.getElementById("staff-password").value;
+      const roleId = document.getElementById("staff-role").value;
+
+      try {
+        const res = await fetch("/api/staff", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, roleId }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Failed to add staff");
+
+        showToast(`Staff member '${email}' created successfully.`);
+        document.getElementById("staff-email").value = "";
+        document.getElementById("staff-password").value = "";
+        document.getElementById("staff-role").value = "";
+        loadStaff();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    });
+
+    // LOGS VIEW (Stretch goal)
+    async function loadLogs() {
+      try {
+        const res = await fetch("/api/logs");
+        const data = await res.json();
+
+        // 1. Access logs
+        const accessBody = document.getElementById("access-logs-body");
+        accessBody.innerHTML = "";
+        data.accessLogs.forEach(log => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-rose-500/5";
+          tr.innerHTML = `
+            <td class="py-2.5 pr-4 whitespace-nowrap text-slate-500">${new Date(log.timestamp).toLocaleString()}</td>
+            <td class="py-2.5 pr-4 font-bold text-rose-400">${log.userEmail}</td>
+            <td class="py-2.5 pr-4 text-slate-300 font-bold">${log.attemptedPermission}</td>
+            <td class="py-2.5 pr-4">${log.endpoint}</td>
+            <td class="py-2.5 pr-4 max-w-xs truncate" title="${log.reason}">${log.reason}</td>
+          `;
+          accessBody.appendChild(tr);
+        });
+
+        // 2. Audit logs
+        const auditBody = document.getElementById("audit-logs-body");
+        auditBody.innerHTML = "";
+        data.auditLogs.forEach(log => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-900/10";
+          tr.innerHTML = `
+            <td class="py-3 pr-4 whitespace-nowrap text-slate-500">${new Date(log.timestamp).toLocaleString()}</td>
+            <td class="py-3 pr-4 font-semibold text-slate-200">ID: ${log.loadId.slice(0, 8)}... (${log.load.requiredEquipmentType})</td>
+            <td class="py-3 pr-4 font-mono"><span class="text-slate-500">${log.fromState || 'CREATE'}</span> → <span class="text-indigo-400 font-bold">${log.toState}</span></td>
+            <td class="py-3 pr-4 font-bold text-slate-300">${log.changedByUser.email}</td>
+            <td class="py-3 pr-4 max-w-md truncate" title="${log.note}">${log.note}</td>
+          `;
+          auditBody.appendChild(tr);
+        });
+
+      } catch (err) {
+        showToast("Error retrieving system logs", "error");
+      }
+    }
+  </script>
+</body>
+</html>
