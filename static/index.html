@@ -516,6 +516,23 @@
       setTimeout(() => toast.classList.add("hidden"), 5000);
     }
 
+    async function safeParseJson(response) {
+      const text = await response.text();
+      let data = null;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        if (!response.ok) {
+          throw new Error(`Server Error (${response.status}): ${text || response.statusText || 'Internal Server Error'}`);
+        }
+        throw new Error("Invalid response format received from server.");
+      }
+      if (!response.ok) {
+        throw new Error(data.detail || data.error || "Request failed");
+      }
+      return data;
+    }
+
     function renderQuickLoginProfiles() {
       const container = document.getElementById("sandbox-logins");
       container.innerHTML = "";
@@ -578,8 +595,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || data.error || "Login failed");
+        const data = await safeParseJson(res);
 
         currentUser = data.user;
         showToast("Logged in successfully.");
@@ -733,8 +749,7 @@
             shipperId: currentUser.accountType === "BROKER_STAFF" ? shipperId : undefined,
           }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Failed to post load");
+        const data = await safeParseJson(res);
 
         showToast("Load created successfully.");
         document.getElementById("create-load-panel").classList.add("hidden");
@@ -934,8 +949,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ carrierOrgId }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Assignment failed");
+        const data = await safeParseJson(res);
 
         showToast("Carrier assigned and compliance flag computed.");
         closeModal();
@@ -970,8 +984,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ baseRate, accessorials: [] }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Rate confirmation failed");
+        const data = await safeParseJson(res);
 
         showToast("Rate confirmation sheet issued.");
         closeModal();
@@ -1009,8 +1022,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ reason }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Override failed");
+        const data = await safeParseJson(res);
 
         showToast("Compliance block manually cleared.");
         closeModal();
@@ -1064,8 +1076,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ toState, note }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "State transition failed");
+        const data = await safeParseJson(res);
 
         showToast("Load status updated.");
         closeModal();
@@ -1100,8 +1111,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ podUrl }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "POD upload failed");
+        const data = await safeParseJson(res);
 
         showToast("Proof of Delivery verified.");
         closeModal();
@@ -1219,8 +1229,7 @@
             approvedCommodityTypes,
           }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Update failed");
+        const data = await safeParseJson(res);
 
         showToast("Compliance declaration updated.");
         loadComplianceDirectory();
@@ -1293,8 +1302,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, permissionKeys }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Failed to create role");
+        const data = await safeParseJson(res);
 
         showToast(`Role '${name}' created successfully.`);
         document.getElementById("role-name").value = "";
@@ -1349,8 +1357,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password, roleId }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Failed to add staff");
+        const data = await safeParseJson(res);
 
         showToast(`Staff member '${email}' created successfully.`);
         document.getElementById("staff-email").value = "";
